@@ -6,22 +6,20 @@ output:
     orientation: rows
     vertical_layout: fill
     navbar:
-      - { title: "", href: "",  icon: "fa-github" }
+      - { title: "", href: "https://github.com/sanjivch/DataScience/tree/master/Machine%20Learning/EDA",  icon: "fa-github" }
 runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
 library(dplyr)
+library(stringr)
 library(ggplot2)
 library(plotly)
 library(flexdashboard)
 ```
-```{r}
-asNumeric <- function(x) as.numeric(as.character(x))
-factorsNumeric <- function(d) modifyList(d, lapply(d[, sapply(d, is.factor)],asNumeric))
-```
 
-```{r}
+
+```{r }
 confirmed_cases_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
 covid_confirmed <- read.csv(confirmed_cases_url,header=TRUE, check.names = FALSE)
 
@@ -31,81 +29,132 @@ covid_recovered <- read.csv(recovered_cases_url,header=TRUE, check.names = FALSE
 deceased_cases_url <- 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
 covid_deceased <- read.csv(deceased_cases_url,header=TRUE, check.names = FALSE)
 
+# Functions to modify  datatype
+asNumeric <- function(x) as.numeric(as.character(x))
+factorsNumeric <- function(d) modifyList(d, lapply(d[, sapply(d, is.factor)],asNumeric))
 
-```
-```{r}
-# Drop latitude, longitude and Province/State
-covid_confirmed <- subset(covid_confirmed, select = -c(`Province/State`, Lat, Long))
-covid_recovered <- subset(covid_recovered, select = -c(`Province/State`, Lat, Long))
-covid_deceased <- subset(covid_deceased, select = -c(`Province/State`, Lat, Long))
-
-# Some countries have values by state/province
-# group them by country
-covid_confirmed <- covid_confirmed %>% 
+modifyDataframe <- function(df) {
+  # Drop latitude, longitude and Province/State
+  df <- subset(df, select = -c(`Province/State`, Lat, Long))
+  
+  # Some countries have values by state/province
+  # group them by country
+  df <- df %>% 
   group_by(`Country/Region`) %>%
-    summarise_all(.funs = c(sum="sum")) 
+    summarise_all(.funs = c(sum="sum"))
+  
+  # Remove the string "_sum" from column names
+  names(df) <- sub("_sum","",names(df))
 
-covid_recovered <- covid_recovered %>% 
-  group_by(`Country/Region`) %>%
-    summarise_all(.funs = c(sum="sum")) 
+  # Transpose - Rows to Columns and vice versa 
+  # change the resulting Tibble into df
+  df <-  t(df) %>% as.data.frame()
+  
+  # Put the first row as the header
+  # and delete the first row
+  names(df) <- lapply(df[1, ], as.character)
+  names(df)<-str_replace_all(names(df), c(" " = "_" , "," = "","\\(" = "", "\\)" = "",  "\\*" = "" ))
+  df <- df[-1,] 
 
-covid_deceased <- covid_deceased %>% 
-  group_by(`Country/Region`) %>%
-    summarise_all(.funs = c(sum="sum")) 
+  # Change all the columns to Numeric
+  df<- factorsNumeric(df)
+
+  # Make the index as Date column
+  # and assign an index
+  df <- cbind(Dates = rownames(df), df)
+  rownames(df) <- 1:nrow(df)
+
+  # Change the date to required format
+  df$Dates <- as.factor(df$Dates)
+  df$Dates <- strptime(df$Dates,format="%m/%d/%Y") 
+  df$Dates <- as.Date(df$Dates,format="%Y-%m-%d") 
+  
+}
+
+
+ covid_confirmed <- subset(covid_confirmed, select = -c(`Province/State`, Lat, Long))
+ covid_recovered <- subset(covid_recovered, select = -c(`Province/State`, Lat, Long))
+ covid_deceased <- subset(covid_deceased, select = -c(`Province/State`, Lat, Long))
+
+ covid_confirmed <- covid_confirmed %>%
+   group_by(`Country/Region`) %>%
+     summarise_all(.funs = c(sum="sum"))
+
+ covid_recovered <- covid_recovered %>%
+   group_by(`Country/Region`) %>%
+     summarise_all(.funs = c(sum="sum"))
+
+ covid_deceased <- covid_deceased %>%
+   group_by(`Country/Region`) %>%
+     summarise_all(.funs = c(sum="sum"))
 
 # Remove the string "_sum" from column names
-names(covid_confirmed) <- sub("_sum","",names(covid_confirmed))
-names(covid_recovered) <- sub("_sum","",names(covid_recovered))
-names(covid_deceased) <- sub("_sum","",names(covid_deceased))
+ names(covid_confirmed) <- sub("_sum","",names(covid_confirmed))
+ names(covid_recovered) <- sub("_sum","",names(covid_recovered))
+ names(covid_deceased) <- sub("_sum","",names(covid_deceased))
 
-# Transpose - Rows to Columns and vice versa 
-# change the resulting Tibble into df
-covid_confirmed <-  t(covid_confirmed) %>% as.data.frame()
-covid_recovered <-  t(covid_recovered) %>% as.data.frame()
-covid_deceased <-  t(covid_deceased) %>% as.data.frame()
+ # Transpose - Rows to Columns and vice versa
+ # change the resulting Tibble into df
+ covid_confirmed <-  t(covid_confirmed) %>% as.data.frame()
+ covid_recovered <-  t(covid_recovered) %>% as.data.frame()
+ covid_deceased <-  t(covid_deceased) %>% as.data.frame()
 
-# Put the first row as the header
-# and delete the first row
-names(covid_confirmed) <- lapply(covid_confirmed[1, ], as.character)
-covid_confirmed <- covid_confirmed[-1,] 
+ # Put the first row as the header
+ # and delete the first row
+ names(covid_confirmed) <- lapply(covid_confirmed[1, ], as.character)
+ names(covid_confirmed)<-str_replace_all(names(covid_confirmed), c(" " = "_" , "," = "","\\(" = "", "\\)" = "",  "\\*" = "" , "'"=""))
+ covid_confirmed <- covid_confirmed[-1,]
 
-names(covid_recovered) <- lapply(covid_recovered[1, ], as.character)
-covid_recovered <- covid_recovered[-1,]
+ names(covid_recovered) <- lapply(covid_recovered[1, ], as.character)
+ names(covid_recovered)<-str_replace_all(names(covid_recovered), c(" " = "_" , "," = "","\\(" = "", "\\)" = "", "\\*" = "" , "'"=""))
+ covid_recovered <- covid_recovered[-1,]
 
-names(covid_deceased) <- lapply(covid_deceased[1, ], as.character)
-covid_deceased <- covid_deceased[-1,]
+ names(covid_deceased) <- lapply(covid_deceased[1, ], as.character)
+ names(covid_deceased)<-str_replace_all(names(covid_deceased), c(" " = "_" , "," = "","\\(" = "", "\\)" = "",  "\\*" = "" , "'"=""))
+ covid_deceased <- covid_deceased[-1,]
 
 
-# Change all the columns to Numeric
-covid_confirmed<- factorsNumeric(covid_confirmed)
-covid_recovered<- factorsNumeric(covid_recovered)
-covid_deceased<- factorsNumeric(covid_deceased)
+ # Change all the columns to Numeric
+ covid_confirmed<- factorsNumeric(covid_confirmed)
+ covid_recovered<- factorsNumeric(covid_recovered)
+ covid_deceased<- factorsNumeric(covid_deceased)
 
-# Make the index as Date column
-# and assign an index
-covid_confirmed <- cbind(Dates = rownames(covid_confirmed), covid_confirmed)
-rownames(covid_confirmed) <- 1:nrow(covid_confirmed)
+ # Make the index as Date column
+ # and assign an index
+ covid_confirmed <- cbind(Dates = rownames(covid_confirmed), covid_confirmed)
+ covid_confirmed$Dates<-str_replace_all(covid_confirmed$Dates, c("/20" = "/2020"))
+ rownames(covid_confirmed) <- 1:nrow(covid_confirmed)
 
-covid_recovered <- cbind(Dates = rownames(covid_recovered), covid_recovered)
-rownames(covid_recovered) <- 1:nrow(covid_recovered)
+ covid_recovered <- cbind(Dates = rownames(covid_recovered), covid_recovered)
+ covid_recovered$Dates<-str_replace_all(covid_recovered$Dates, c("/20" = "/2020"))
+ rownames(covid_recovered) <- 1:nrow(covid_recovered)
 
-covid_deceased <- cbind(Dates = rownames(covid_deceased), covid_deceased)
-rownames(covid_deceased) <- 1:nrow(covid_deceased)
+ covid_deceased <- cbind(Dates = rownames(covid_deceased), covid_deceased)
+ covid_deceased$Dates<-str_replace_all(covid_deceased$Dates, c("/20" = "/2020"))
+ rownames(covid_deceased) <- 1:nrow(covid_deceased)
 
 
 #names(covid_confirmed)[1] <- "Date"
 # Change the date to required format
-covid_confirmed$Dates<-as.factor(covid_confirmed$Dates)
-covid_confirmed$Dates<-strptime(covid_confirmed$Dates,format="%m/%d/%Y") 
-covid_confirmed$Dates<-as.Date(covid_confirmed$Dates,format="%Y-%m-%d") 
+ covid_confirmed$Dates <- as.factor(covid_confirmed$Dates)
+ covid_confirmed$Dates <- strptime(covid_confirmed$Dates,format="%m/%d/%Y")
+ covid_confirmed$Dates <- as.Date(covid_confirmed$Dates,format="%Y-%m-%d")
+#covid_confirmed$Dates <- str_replace_all(covid_confirmed$Dates, c("0020" = "2020" ))
 
-covid_recovered$Dates<-as.factor(covid_recovered$Dates)
-covid_recovered$Dates<-strptime(covid_recovered$Dates,format="%m/%d/%Y") 
-covid_recovered$Dates<-as.Date(covid_recovered$Dates,format="%Y-%m-%d")
+ covid_recovered$Dates<-as.factor(covid_recovered$Dates)
+ covid_recovered$Dates<-strptime(covid_recovered$Dates,format="%m/%d/%Y")
+ covid_recovered$Dates<-as.Date(covid_recovered$Dates,format="%Y-%m-%d")
+ #covid_recovered$Dates <- str_replace_all(covid_recovered$Dates, c("0020" = "2020" ))
 
-covid_deceased$Dates<-as.factor(covid_deceased$Dates)
-covid_deceased$Dates<-strptime(covid_deceased$Dates,format="%m/%d/%Y") 
-covid_deceased$Dates<-as.Date(covid_deceased$Dates,format="%Y-%m-%d") 
+ covid_deceased$Dates<-as.factor(covid_deceased$Dates)
+ covid_deceased$Dates<-strptime(covid_deceased$Dates,format="%m/%d/%Y")
+ covid_deceased$Dates<-as.Date(covid_deceased$Dates,format="%Y-%m-%d")
+ #covid_deceased$Dates <- str_replace_all(covid_deceased$Dates, c("0020" = "2020" ))
+ #covid_confirmed$Dates
+
+# covid_confirmed <- modifyDataframe(covid_confirmed)
+# covid_recovered <- modifyDataframe(covid_recovered)
+# covid_deceased <- modifyDataframe(covid_deceased)
 
 ```
 
@@ -116,26 +165,27 @@ Column {.sidebar}
 ### Select Country
 ```{r}
 selectInput('country', '', names(select_if(covid_confirmed, is.numeric)))
- 
+
 ```
+
+
 
 Row
 -----------------------------------------------------------------------
 
 
-
-### Total Cases {.value-box}
+### Total Cases {.value-box data-width=200}
 
 ```{r}
 
-confirmed <- reactive({max(covid_confirmed[, input$country])})
+confirmed <- reactive({(covid_confirmed[, input$country][nrow(covid_confirmed)])})
 renderValueBox({
   valueBox(value = confirmed(), icon = "fa-users", color = "orange")
 })
 
 ```
 
-### Recovered Cases {.value-box}
+### Recovered Cases {.value-box data-width=200}
 
 ```{r}
 
@@ -146,7 +196,7 @@ renderValueBox({
 })
 ```
 
-### Deceased Cases {.value-box}
+### Deceased Cases {.value-box data-width=200}
 
 ```{r}
 deceased <- reactive({(covid_deceased[, input$country][nrow(covid_deceased)])})
@@ -157,47 +207,130 @@ renderValueBox({
 })
 ```
 
+Row {.tabset}
+-----------------------------------------------------------------------------------------
+### Confirmed Cases
 
-Row
--------------------------------------------------------------------------
-### Status by Country
 
 ```{r}
-#  covid <- rbind(covid_confirmed,covid_recovered,covid_deceased)
-# covid$status <- rep(c("Confirmed","Recovered","Deceased"),times = c(nrow(covid_confirmed),nrow(covid_recovered),nrow(covid_deceased)))
+covid <- rbind(covid_confirmed,covid_recovered,covid_deceased)
+covid$status <- rep(c("Confirmed","Recovered","Deceased"),times = c(nrow(covid_confirmed),nrow(covid_recovered),nrow(covid_deceased)))
 
-dataset <- covid_confirmed
+
 renderPlotly({
  
-p <- ggplot(data = dataset, aes_string(x = dataset$Dates, y = input$country))+
-  geom_line(size = 0.75)+geom_point()
+p <- ggplot(data = covid_confirmed, aes_string(x = covid_confirmed$Dates, y = input$country))+
+  geom_line(size = 0.25, color="orange")+geom_point(size=0.3,color="orange")
+
+
 ggplotly(p)
-  print(p)
+
+print(p)
+
 })
 
 
-# dataset <- reactive({
-#   diamonds[sample(nrow(diamonds), input$sampleSize),]
-# })
-# 
-# renderPlot({
-#   p <- ggplot(dataset(), aes_string(x=input$x, y=input$y)) + geom_point()
-#   
-#   if (input$color != 'None')
-#     p <- p + aes_string(color=input$color)
-#   
-#   facets <- paste(input$facet_row, '~', input$facet_col)
-#   if (facets != '. ~ .')
-#     p <- p + facet_grid(facets)
-#   
-#   if (input$jitter)
-#     p <- p + geom_jitter()
-#   if (input$smooth)
-#     p <- p + geom_smooth()
-#   
-#   print(p)
-# })
 ```
 
-### Daily new cases
+### Recovered cases
+
+```{r}
+renderPlotly({
+ 
+
+
+q <- ggplot(data = covid_recovered, aes_string(x = covid_recovered$Dates, y = input$country))+
+  geom_line(size=0.25, color="darkgreen")+geom_point(size=0.3,color="darkgreen")
+
+ggplotly(q)
+
+print(q)
+})
+```
+
+### Deceased cases {data-height=300}
+
+```{r}
+renderPlotly({
+ 
+
+
+r <- ggplot(data = covid_deceased, aes_string(x = covid_deceased$Dates, y = input$country))+
+  geom_line(size=0.25, color ="red")+geom_point(size=0.3, color="red")
+
+ggplotly(r)
+
+print(r)
+})
+```
+
+
+
+India
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+
+### India - Total Cases {.value-box }
+
+```{r}
+
+confirmed1 <- max(covid_confirmed$India)
+renderValueBox({
+  valueBox(value = confirmed1, icon = "fa-users", color = "orange")
+})
+
+```
+
+
+### India - Recovered Cases {.value-box }
+
+```{r}
+
+recovered1 <- max(covid_recovered$India)
+renderValueBox({
+  valueBox(value = recovered1, icon = "fa-users", color = "green")
+})
+
+```
+
+
+### India - Deceased Cases {.value-box }
+
+```{r}
+
+deceased1 <- max(covid_deceased$India)
+renderValueBox({
+  valueBox(value = deceased1, icon = "fa-users", color = "red")
+})
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Status
+
+
+```{r}
+covid <- rbind(covid_confirmed,covid_recovered,covid_deceased)
+covid$status <- rep(c("Confirmed","Recovered","Deceased"),times = c(nrow(covid_confirmed),nrow(covid_recovered),nrow(covid_deceased)))
+
+
+renderPlotly({
+ 
+p <- ggplot(data = covid, aes(x = Dates, y = India, color=status))+
+  geom_line(size = 0.25)+geom_point(size=0.3)+scale_color_manual(values = c("orange", "red", "darkgreen"))
+
+
+ggplotly(p)
+
+print(p)
+
+})
+
+
+```
 
