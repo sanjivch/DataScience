@@ -33,44 +33,6 @@ covid_deceased <- read.csv(deceased_cases_url,header=TRUE, check.names = FALSE)
 asNumeric <- function(x) as.numeric(as.character(x))
 factorsNumeric <- function(d) modifyList(d, lapply(d[, sapply(d, is.factor)],asNumeric))
 
-modifyDataframe <- function(df) {
-  # Drop latitude, longitude and Province/State
-  df <- subset(df, select = -c(`Province/State`, Lat, Long))
-  
-  # Some countries have values by state/province
-  # group them by country
-  df <- df %>% 
-  group_by(`Country/Region`) %>%
-    summarise_all(.funs = c(sum="sum"))
-  
-  # Remove the string "_sum" from column names
-  names(df) <- sub("_sum","",names(df))
-
-  # Transpose - Rows to Columns and vice versa 
-  # change the resulting Tibble into df
-  df <-  t(df) %>% as.data.frame()
-  
-  # Put the first row as the header
-  # and delete the first row
-  names(df) <- lapply(df[1, ], as.character)
-  names(df)<-str_replace_all(names(df), c(" " = "_" , "," = "","\\(" = "", "\\)" = "",  "\\*" = "" ))
-  df <- df[-1,] 
-
-  # Change all the columns to Numeric
-  df<- factorsNumeric(df)
-
-  # Make the index as Date column
-  # and assign an index
-  df <- cbind(Dates = rownames(df), df)
-  rownames(df) <- 1:nrow(df)
-
-  # Change the date to required format
-  df$Dates <- as.factor(df$Dates)
-  df$Dates <- strptime(df$Dates,format="%m/%d/%Y") 
-  df$Dates <- as.Date(df$Dates,format="%Y-%m-%d") 
-  
-}
-
 
  covid_confirmed <- subset(covid_confirmed, select = -c(`Province/State`, Lat, Long))
  covid_recovered <- subset(covid_recovered, select = -c(`Province/State`, Lat, Long))
@@ -134,27 +96,22 @@ modifyDataframe <- function(df) {
  rownames(covid_deceased) <- 1:nrow(covid_deceased)
 
 
-#names(covid_confirmed)[1] <- "Date"
+
 # Change the date to required format
  covid_confirmed$Dates <- as.factor(covid_confirmed$Dates)
  covid_confirmed$Dates <- strptime(covid_confirmed$Dates,format="%m/%d/%Y")
  covid_confirmed$Dates <- as.Date(covid_confirmed$Dates,format="%Y-%m-%d")
-#covid_confirmed$Dates <- str_replace_all(covid_confirmed$Dates, c("0020" = "2020" ))
+
 
  covid_recovered$Dates<-as.factor(covid_recovered$Dates)
  covid_recovered$Dates<-strptime(covid_recovered$Dates,format="%m/%d/%Y")
  covid_recovered$Dates<-as.Date(covid_recovered$Dates,format="%Y-%m-%d")
- #covid_recovered$Dates <- str_replace_all(covid_recovered$Dates, c("0020" = "2020" ))
+ 
 
  covid_deceased$Dates<-as.factor(covid_deceased$Dates)
  covid_deceased$Dates<-strptime(covid_deceased$Dates,format="%m/%d/%Y")
  covid_deceased$Dates<-as.Date(covid_deceased$Dates,format="%Y-%m-%d")
- #covid_deceased$Dates <- str_replace_all(covid_deceased$Dates, c("0020" = "2020" ))
- #covid_confirmed$Dates
 
-# covid_confirmed <- modifyDataframe(covid_confirmed)
-# covid_recovered <- modifyDataframe(covid_recovered)
-# covid_deceased <- modifyDataframe(covid_deceased)
 
 ```
 
@@ -334,3 +291,30 @@ print(p)
 
 ```
 
+
+Row
+-----------------------------------------------------------------------
+
+### Daily Change in Confirmed cases
+
+
+```{r}
+covid <- rbind(covid_confirmed,covid_recovered,covid_deceased)
+covid$status <- rep(c("Confirmed","Recovered","Deceased"),times = c(nrow(covid_confirmed),nrow(covid_recovered),nrow(covid_deceased)))
+
+covid_confirmed$Delta <- c(0,diff(covid_confirmed$India, lags =1, differences = 1))
+
+renderPlotly({
+ 
+p <- ggplot(data = covid_confirmed, aes(x = Dates, y = Delta))+
+  geom_bar(stat = "identity", fill = "red")
+
+
+ggplotly(p)
+
+print(p)
+
+})
+
+
+```
