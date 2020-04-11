@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-1.3.4.min.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-1.3.4.min.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-tables-1.3.4.min.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-1.3.4.min.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-1.3.4.min.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-tables-1.3.4.min.js"></script>
+
+    <title>Power Dashboard</title>
+
+</head>
+
+    <body style="background-color:lightgrey;">
+        <nav class="navbar navbar-dark bg-dark">
+            <a class="navbar-brand" href="#"><img src="https://img.icons8.com/plasticine/50/000000/power-plant.png"/><b>Global Power Plant Dashboard</b></a>
+            &nbsp;
+            &nbsp;
+            <a style="color:white;" href=""><h6><i class="fab fa-github"></i>Github</h6></a>
+        </nav>
+        <br>
+
+
+        <div class="container-fluid" style="padding:0px">
+            <div class="container" style=" padding:0px;">
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="card bg-light border-dark mb-3" style="max-width: 18rem; height: 11rem;">
+                              <!--<div class="card-header">Header</div>-->
+                              <div class="card-body">
+                                  <p class="card-text"><small>Select country</small></p>
+                                  <div class="form-group ">
+                                      <!--<label for="exampleFormControlSelect1">Example select</label>-->
+                                      <form action="/dashboard">
+                                      <select name="country_name" class="form-control" id="exampleFormControlSelect1">
+                                          {% for country in country_names %}
+                                              {% if country == current_country_name %}
+                                                    <option selected value="{{ country }}">{{ country }}</option>
+                                               {% else %}
+                                                    <option value="{{ country }}">{{ country }}</option>
+                                               {% endif %}
+                                          {% endfor %}
+                                      </select><br>
+                                      <input class="btn btn-outline-primary" type="submit" value="Update">
+                                      </form>
+                                 </div>
+                              </div>
+                            </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="card text-white border-dark bg-primary mb-3" style="max-width: 18rem; height: 11rem;">
+                            <div class="card-header"><small>{{current_country_name}}</small></div>
+                            <div class="card-body">
+                                <p class="card-text"><h2><b>{{total_capacity}} GW</b></h2></p>
+                                <h6 class="card-title"><small>Total installed capacity</small></h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="card text-white border-dark bg-success mb-3" style="max-width: 18rem; height: 11rem;">
+                            <div class="card-header"><small>{{current_country_name}}</small></div>
+                            <div class="card-body">
+                                <p class="card-text"><h2><b>{{num_oper}}</b></h2></p>
+                                <h6 class="card-title"><small>Plants operational</small></h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="card text-white border-dark bg-warning mb-3" style="max-width: 18rem; height: 11rem;">
+                            <div class="card-header"><small>{{current_country_name}}</small></div>
+                            <div class="card-body">
+                              <p class="card-text"><h2><b>{{fuel_sources}}</b></h2></p>
+                                <h6 class="card-title"><small>Fuel Sources</small></h6>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid" style=" padding:0px;">
+            <div class="container" style=" padding:0px;">
+                <div class="row">
+                      <div class="col-sm-6">
+                        <div class="card border-dark">
+                          <div class="card-header"><small>Split by Primary Fuel - {{current_country_name}}</small></div>
+                          <div class="card-body" align="center">
+                            <!--<h5 class="card-title">Special title treatment</h5>
+                            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>-->
+                                 {{ pie_script|safe }}
+                                 {{ pie_div|safe }}
+
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-sm-6">
+                        <div class="card border-dark">
+                          <div class="card-header"><small>Top 5- {{current_country_name}}</small></div>
+                          <div class="card-body">
+
+                             {{ hbar_script|safe }}
+                             {{ hbar_div|safe }}
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+            </div>
+        </div>
+
+
+    </body>
+<a href="https://icons8.com/icon/AeNIbTkJqfHz/power-plant"><h6><small>Power Plant icon by Icons8</small></h6></a>
+
+</html>
