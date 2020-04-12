@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import pandas as pd
 import bokeh
 from bokeh.embed import components
@@ -13,7 +13,8 @@ from bokeh.transform import cumsum
 power_app = Flask(__name__)
 
 # Load csv
-power_plant = pd.read_csv(r"C:\Users\sanjiv\Documents\Datasets\World Resources Institute\globalpowerplantdatabasev120\global_power_plant_database.csv")
+data_csv = "https://raw.githubusercontent.com/wri/global-power-plant-database/master/output_database/global_power_plant_database.csv"
+power_plant = pd.read_csv(data_csv)
 
 # # Group by country
 # power_plant = power_plant.groupby(by = 'country_long').sum()
@@ -32,21 +33,24 @@ def create_pie(_name,_df):
     data2 = pd.Series(b).reset_index(name="capacity_mw").rename(columns={'index':'capacity_mw'})
     data2.columns = ['fuel_type', 'capacity_mw']
     data = pd.merge(data, data2, on='fuel_type')
-
+    print(len(x))
     # Few countries have less than 3 sources of fuel
     if len(x) < 3:
-        data['color'] = ['#1f77b4', '#ff7f0e']
+        if len(x) < 2:
+            data['color'] = ['#1f77b4']
+        else:
+            data['color'] = ['#1f77b4', '#ff7f0e']
     else:
         data['color'] = bokeh.palettes.Category20[len(x)]
     print(data)
     p = figure(plot_height=250, plot_width= 500, toolbar_location=None,
-               tools="hover", tooltips="@fuel_type type: @value plants, @capacity_mw GW", x_range=(-0.5, 1.0))
+               tools="hover", tooltips="@fuel_type type: @value plants", x_range=(-0.5, 1.0))
 
     p.wedge(x=0, y=1, radius=0.3,
             start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
             line_color="white", fill_color='color', legend='fuel_type', source=data)
 
-    p.axis.axis_label = None
+    p.axis.axis_label = str(_name)
     p.axis.visible = False
     p.grid.grid_line_color = None
 
@@ -60,7 +64,7 @@ def create_hbar(_df, _name):
     p = figure(plot_height=250, plot_width= 500, toolbar_location=None,
                tools="hover",tooltips="@capacity_mw GW",y_range=fuels)
     p.hbar(y='primary_fuel', right='capacity_mw', source=source, height = 0.25, color='#ff7f0e')
-
+    p.xaxis.axis_label = str(_name) +' Capacity (GW)'
     return p
 
 

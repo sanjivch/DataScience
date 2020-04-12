@@ -1,0 +1,1 @@
+web: gunicorn power_app:power_app --log-file=-
