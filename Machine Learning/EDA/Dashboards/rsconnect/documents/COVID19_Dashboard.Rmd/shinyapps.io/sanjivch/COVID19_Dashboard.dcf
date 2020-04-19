@@ -5,8 +5,8 @@ account: sanjivch
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2059477
-bundleId: 2970962
+bundleId: 3035472
 url: https://sanjivch.shinyapps.io/COVID19_Dashboard/
-when: 1586076262.28963
+when: 1587323937.13804
 asMultiple: FALSE
 asStatic: FALSE
