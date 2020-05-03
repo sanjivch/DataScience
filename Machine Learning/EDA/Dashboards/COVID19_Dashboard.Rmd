@@ -356,7 +356,12 @@ india_map
 
 ```{r}
 state_name <- reactive({
-  covid_districts[covid_districts$State_Code == input$state,]
+  if (input$state == 'TT'){
+    covid_districts
+  } else {
+    covid_districts[covid_districts$State_Code == input$state,]
+  }
+  
 })
 DT::renderDataTable({
   data <- state_name() %>% 
