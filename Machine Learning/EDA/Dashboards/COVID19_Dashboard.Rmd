@@ -7,8 +7,8 @@ output:
     vertical_layout: fill
     
     navbar:
-      - { title: "", href: "https://github.com/sanjivch/DataScience/tree/master/Machine%20Learning/EDA",  icon: "fa-github" }
-      - { title: "Source JHU", href: "https://github.com/CSSEGISandData/COVID-19",  icon: "fa-globe" }
+      - { title: "GitHub", href: "https://github.com/sanjivch/DataScience/tree/master/Machine%20Learning/EDA/Dashboards",  icon: "fa-github" }
+      
 runtime: shiny
 ---
 
@@ -20,6 +20,9 @@ library(plotly)
 library(flexdashboard)
 library(countrycode)
 library(shiny)
+library(leaflet)
+library(DT)
+
 ```
 
 
@@ -52,78 +55,15 @@ clean_df <- function(df){
   names(df) <- lapply(df[1,], as.character) 
   df <- df[-1,]
   df <- factorsNumeric(df) %>% 
-    mutate(Dates = rownames(df))
+    mutate(Dates = rownames(df)) 
 }
-
-
-#  covid_confirmed <- subset(covid_confirmed, select = -c(`Province/State`, Lat, Long))
-#  covid_recovered <- subset(covid_recovered, select = -c(`Province/State`, Lat, Long))
-#  covid_deceased <- subset(covid_deceased, select = -c(`Province/State`, Lat, Long))
-# 
-#  covid_confirmed <- covid_confirmed %>%
-#    group_by(`Country/Region`) %>%
-#      summarise_all(.funs = c(sum="sum"))
-# 
-#  covid_recovered <- covid_recovered %>%
-#    group_by(`Country/Region`) %>%
-#      summarise_all(.funs = c(sum="sum"))
-# 
-#  covid_deceased <- covid_deceased %>%
-#    group_by(`Country/Region`) %>%
-#      summarise_all(.funs = c(sum="sum"))
-# 
-# # Remove the string "_sum" from column names
-#  names(covid_confirmed) <- sub("_sum","",names(covid_confirmed))
-#  names(covid_recovered) <- sub("_sum","",names(covid_recovered))
-#  names(covid_deceased) <- sub("_sum","",names(covid_deceased))
-# 
-#  # Transpose - Rows to Columns and vice versa
-#  # change the resulting Tibble into df
-#  covid_confirmed <-  t(covid_confirmed) %>% as.data.frame()
-#  covid_recovered <-  t(covid_recovered) %>% as.data.frame()
-#  covid_deceased <-  t(covid_deceased) %>% as.data.frame()
-# 
-#  # Put the first row as the header
-#  # and delete the first row
-#  names(covid_confirmed) <- lapply(covid_confirmed[1, ], as.character)
-#  names(covid_confirmed)<-str_replace_all(names(covid_confirmed), c(" " = "_" , "," = "","\\(" = "", "\\)" = "",  "\\*" = "" , "'"=""))
-#  covid_confirmed <- covid_confirmed[-1,]
-# 
-#  names(covid_recovered) <- lapply(covid_recovered[1, ], as.character)
-#  names(covid_recovered)<-str_replace_all(names(covid_recovered), c(" " = "_" , "," = "","\\(" = "", "\\)" = "", "\\*" = "" , "'"=""))
-#  covid_recovered <- covid_recovered[-1,]
-# 
-#  names(covid_deceased) <- lapply(covid_deceased[1, ], as.character)
-#  names(covid_deceased)<-str_replace_all(names(covid_deceased), c(" " = "_" , "," = "","\\(" = "", "\\)" = "",  "\\*" = "" , "'"=""))
-#  covid_deceased <- covid_deceased[-1,]
-# 
-# 
-#  # Change all the columns to Numeric
-#  covid_confirmed<- factorsNumeric(covid_confirmed)
-#  covid_recovered<- factorsNumeric(covid_recovered)
-#  covid_deceased<- factorsNumeric(covid_deceased)
-# 
-#  # Make the index as Date column
-#  # and assign an index
-#  covid_confirmed <- cbind(Dates = rownames(covid_confirmed), covid_confirmed)
-#  covid_confirmed$Dates<-str_replace_all(covid_confirmed$Dates, c("/20" = "/2020"))
-#  rownames(covid_confirmed) <- 1:nrow(covid_confirmed)
-# 
-#  covid_recovered <- cbind(Dates = rownames(covid_recovered), covid_recovered)
-#  covid_recovered$Dates<-str_replace_all(covid_recovered$Dates, c("/20" = "/2020"))
-#  rownames(covid_recovered) <- 1:nrow(covid_recovered)
-# 
-#  covid_deceased <- cbind(Dates = rownames(covid_deceased), covid_deceased)
-#  covid_deceased$Dates<-str_replace_all(covid_deceased$Dates, c("/20" = "/2020"))
-#  rownames(covid_deceased) <- 1:nrow(covid_deceased)
-
 
 
 # Change the date to required format
 covid_confirmed <- covid_confirmed %>% 
   modify_df() %>% 
   clean_df()
-covid_confirmed$Dates<-str_replace_all(covid_confirmed$Dates, c("/20" = "/2020")) %>% 
+covid_confirmed$Dates<-paste(covid_confirmed$Dates, "20", sep="") %>% 
   as.factor() %>% 
   strptime(format="%m/%d/%Y") %>% 
   as.Date(format="%Y-%m-%d")
@@ -131,7 +71,7 @@ covid_confirmed$Dates<-str_replace_all(covid_confirmed$Dates, c("/20" = "/2020")
  covid_recovered <- covid_recovered %>% 
   modify_df() %>% 
   clean_df()
-covid_recovered$Dates<-str_replace_all(covid_recovered$Dates, c("/20" = "/2020")) %>% 
+covid_recovered$Dates<-paste(covid_recovered$Dates, "20", sep="") %>% 
   as.factor() %>% 
   strptime(format="%m/%d/%Y") %>% 
   as.Date(format="%Y-%m-%d")
@@ -139,11 +79,23 @@ covid_recovered$Dates<-str_replace_all(covid_recovered$Dates, c("/20" = "/2020")
 covid_deceased <- covid_deceased %>% 
   modify_df() %>% 
   clean_df()
-covid_deceased$Dates<-str_replace_all(covid_deceased$Dates, c("/20" = "/2020")) %>% 
+covid_deceased$Dates<-paste(covid_deceased$Dates, "20", sep="") %>% 
   as.factor() %>% 
   strptime(format="%m/%d/%Y") %>% 
   as.Date(format="%Y-%m-%d")
 ```
+```{r}
+covid_india <- read.csv("https://api.covid19india.org/csv/latest/state_wise.csv")
+india_coord <- read.csv("https://raw.githubusercontent.com/sanjivch/DataScience/master/Misc/IndianStates_lat_long.csv")
+
+```
+
+```{r}
+covid_districts <-  read.csv("https://api.covid19india.org/csv/latest/district_wise.csv")
+
+```
+
+
 
 Global
 =======================================================================
@@ -159,19 +111,22 @@ selectInput('country', '', choices = x)
 
 ```
 
-
+Last Updated:
+```{r}
+renderText(paste(format(covid_confirmed$Dates[nrow(covid_confirmed)],"%Y-%m-%d"), "23:59:59", sep = " "))
+```
 
 Row
 -----------------------------------------------------------------------
 
 
-### Total Cases {.value-box data-width=200}
+### Confirmed Cases {.value-box data-width=200}
 
 ```{r}
 
 confirmed <- reactive({(covid_confirmed[, input$country][nrow(covid_confirmed)])})
 renderValueBox({
-  valueBox(value = confirmed(), icon = "fa-users", color = "orange")
+  valueBox(value = confirmed(), icon = "fa-diagnoses", color = "orange")
 })
 
 ```
@@ -183,7 +138,7 @@ renderValueBox({
 recovered <- reactive({(covid_recovered[, input$country][nrow(covid_recovered)])})
 
 renderValueBox({
-  valueBox(value = recovered(), icon = "fa-users", color = "green")
+  valueBox(value = recovered(), icon = "fa-user-shield", color = "green")
 })
 ```
 
@@ -194,9 +149,22 @@ deceased <- reactive({(covid_deceased[, input$country][nrow(covid_deceased)])})
 
 
 renderValueBox({
-  valueBox(value = deceased(), icon = "fa-users", color = "red")
+  valueBox(value = deceased(), icon = "fa-bed", color = "red")
 })
 ```
+
+
+### Case Fatality Rate (CFR)  {.value-box data-width=200}
+
+```{r}
+pc_mortality <- reactive({round((covid_deceased[, input$country][nrow(covid_deceased)])*100/(covid_confirmed[, input$country][nrow(covid_confirmed)]), digits=2)})
+
+
+renderValueBox({
+  valueBox(value = pc_mortality(), icon = "fa-percent")
+})
+```
+
 
 Row 
 -----------------------------------------------------------------------------------------
@@ -260,8 +228,8 @@ renderPlotly({
  
 
 p <- ggplot(data = country_confirmed, aes(x = Dates, y = confirmed_delta))+
-  geom_bar(stat = "identity", fill = "red")+
-  labs(x = "Dates", y = "# of cases")
+     geom_bar(stat = "identity", fill = "black")+
+     labs(x = "Dates", y = "# of cases")
 
 
 ggplotly(p)
@@ -269,104 +237,158 @@ ggplotly(p)
 print(p)
 
 })
+```
+```{r}
+states <- covid_india %>% 
+          arrange(State) %>% 
+          select(State, State_code)
 ```
 
 
 India
 =======================================================================
 
-Row
+Column {.sidebar}
 -----------------------------------------------------------------------
-
-
-### India - Total Cases {.value-box }
-
+### Select State/UT
 ```{r}
-
-confirmed1 <- max(covid_confirmed$IND)
-renderValueBox({
-  valueBox(value = confirmed1, icon = "fa-users", color = "orange")
-})
-
+y <- states$State
+x <- states$State_code
+names(x) <- y
+selectInput('state', '', choices = x)
 ```
 
-
-### India - Recovered Cases {.value-box }
-
-```{r}
-
-recovered1 <- max(covid_recovered$IND)
-renderValueBox({
-  valueBox(value = recovered1, icon = "fa-users", color = "green")
-})
-
-```
-
-
-### India - Deceased Cases {.value-box }
-
-```{r}
-
-deceased1 <- max(covid_deceased$IND)
-renderValueBox({
-  valueBox(value = deceased1, icon = "fa-users", color = "red")
-})
-
-```
 
 Row
 -----------------------------------------------------------------------
 
+### Total Cases {.value-box }
+
+```{r}
+covid_state_total <- covid_india %>% 
+               select(State_code, Confirmed)
+confirmed1 <- reactive({
+  covid_state_total[covid_state_total$State_code == input$state, ][2]
+  })
+
+renderValueBox({
+  valueBox(value = confirmed1(), icon = "fa-diagnoses", color = "orange")
+})
+
+```
+
+
+### Recovered Cases {.value-box }
+
+```{r}
+covid_state_recovered <- covid_india %>% 
+               select(State_code, Recovered)
+recovered1 <- reactive({
+  covid_state_recovered[covid_state_recovered$State_code == input$state, ][2]
+  })
+renderValueBox({
+  valueBox(value = recovered1(), icon = "fa-user-shield", color = "green")
+})
+
+```
+
+
+### Deceased Cases {.value-box }
+
+```{r}
+covid_state_deceased <- covid_india %>% 
+               select(State_code, Deaths)
+deceased1 <- reactive({
+  covid_state_deceased[covid_state_deceased$State_code == input$state, ][2]
+  })
+renderValueBox({
+  valueBox(value = deceased1(), icon = "fa-bed", color = "red")
+})
+
+```
+
+### Case Fatality Rate (CFR)  {.value-box }
+
+```{r}
+
+covid_state_cfr <- covid_india %>% 
+               select(State_code, Confirmed, Deaths)
+cfr <- reactive({
+  a <- covid_state_cfr[covid_state_cfr$State_code == input$state,][3]
+  b <- covid_state_cfr[covid_state_cfr$State_code == input$state,][2]
+cfr <- round(a*100/b, digits =2)
+  })
+
+renderValueBox({
+  valueBox(value = cfr(), icon = "fa-percent")
+})
+```
+
+
+
+
+Column
+-----------------------------------------------------------------------
 ### Status
 
+```{r}
+india_data <- full_join(covid_india, india_coord)
+india_data <- india_data[-1,]
+
+india_map <- india_data %>%
+            leaflet() %>%
+            addTiles() %>%
+            addCircles(weight=10,
+                       color = "red",
+                       radius=~(india_data$Confirmed)*5,
+                       popup = paste(india_data$State, 
+                               paste("Confirmed",india_data$Confirmed, sep = " : "),
+                               paste("Recovered",india_data$Recovered, sep = " : "),
+                               paste("Deceased",india_data$Deaths, sep = " : "),
+                               paste("Last Updated", india_data$Last_Updated_Time, sep=" : "),
+                               sep="<br>"))
+india_map
+
+
+```
+
+### District wise
 
 ```{r}
-covid <- rbind(covid_confirmed,covid_recovered,covid_deceased)
-covid$status <- rep(c("Confirmed","Recovered","Deceased"),times = c(nrow(covid_confirmed),nrow(covid_recovered),nrow(covid_deceased)))
-
-
-renderPlotly({
- 
-p <- ggplot(data = covid, aes(x = Dates, y = IND, color=status))+
-  geom_line(size = 0.25)+geom_point(size=0.3)+scale_color_manual(values = c("orange", "red", "darkgreen"))
-
-
-ggplotly(p)
-
-print(p)
-
+state_name <- reactive({
+  covid_districts[covid_districts$State_Code == input$state,]
+})
+DT::renderDataTable({
+  data <- state_name() %>% 
+          select(District, 
+                 Confirmed, 
+                 Recovered, 
+                 Deceased, 
+                 Delta_Confirmed, 
+                 Delta_Recovered, 
+                 Delta_Deceased) 
+          
+  DT::datatable(data, options = list(
+    bPaginate = TRUE,
+    scrollX = "200px"
+  ))
 })
 
 
 ```
 
 
-Row
------------------------------------------------------------------------
+Data Source {data-icon="fa-globe"}
+=======================================================================
 
-### Daily Change in Confirmed cases
+#### Data Source(s)
 
+The data is taken from multiple sources listed below:
 
-```{r}
-covid <- rbind(covid_confirmed,covid_recovered,covid_deceased)
-covid$status <- rep(c("Confirmed","Recovered","Deceased"),times = c(nrow(covid_confirmed),nrow(covid_recovered),nrow(covid_deceased)))
+1. Global data is from [JHU CSSE](https://github.com/CSSEGISandData/COVID-19)
+2. India data is from [COVID19India](https://api.covid19india.org)
+3. Latitude and Longitudes for India [LatLong.net](https://www.latlong.net/)
 
-covid_confirmed$Delta <- c(0,diff(covid_confirmed$IND, lags =1, differences = 1))
-
-renderPlotly({
- 
-p <- ggplot(data = covid_confirmed, aes(x = Dates, y = Delta))+
-  geom_bar(stat = "identity", fill = "red")
-
-
-ggplotly(p)
-
-print(p)
-
-})
-
-
-```
-
+Code for the dashboard is available on my [GitHub/sanjivch](https://github.com/sanjivch/DataScience/tree/master/Machine%20Learning/EDA/Dashboards)
 
 
