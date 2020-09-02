@@ -34,11 +34,6 @@ def generate_data(min_value, max_value, mean, std, num_samples, random_seed = 10
 
     return distribution.rvs(size=num_samples)
 
-def check_data(_var):
-    print(_var)
-    print('mean:',_var.mean(),'std:', _var.std(), 'min:', _var.min(), 'max:', _var.max())
-    plt.plot(np.sort(_var))
-    plt.show()
 
 def normalize_values(_var):
     ''' Normalize the variable between
@@ -128,7 +123,7 @@ steam_injection_pressure = generate_data(1200, 9480, 3012, 1435, NUM_SAMPLES)
 steam_injection_rate = generate_data(31.447, 26952.12872, 5980, 6091, NUM_SAMPLES)
 steam_quality = generate_data(0.68, 0.88, 0.8, 0.05, NUM_SAMPLES)
 recovery_rate = generate_target(viscosity, horizontal_permeability, k_v_h, porosity, steam_injection_pressure, steam_injection_rate, steam_quality)
-
+print(recovery_rate)
 # Normalize the values
 viscosity = normalize_values(viscosity)
 horizontal_permeability = normalize_values(horizontal_permeability)
