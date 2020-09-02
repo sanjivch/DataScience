@@ -1,29 +1,12 @@
 import numpy as np
 import scipy.stats
-import pandas as pd
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from keras import layers
+from keras import layers, optimizers, losses, metrics
 import keras
+from sklearn.model_selection import train_test_split
 
-'''
-Parameter Minimum Maximum Mean Standard Deviation
-Input
------ 
-Oil Viscosity (cP) 1965 5000000 1039965 965149
-Horizontal Permeability (mD) 1000 10000 4295 1668
-k k v h / 0.1000 1.0000 0.5927 0.2118
-Porosity (%) 20.00 40.00 32.27 3.72
-Pay Thickness (ft) 0.41 525 87 87
-Steam Injection Pressure (kpa) 1200 9480 3012 1435
-Steam Injection Rate (bbl/day) 31.447 26952.12872 5980 6091
-
-Output
------- 
-Recovery Factor (%) 23 88 69 14
-'''
-# Higher viscosity will increase oil recovery rate
-
+# ====================================================================================
 def generate_data(min_value, max_value, mean, std, num_samples, random_seed = 100):
 
     # Set seed to maintain consistency
@@ -63,14 +46,79 @@ def normalize_values(_var):
     '''
     return (_var-_var.min())/(_var.max()-_var.min())
 
-def generate_target(viscosity, horizontal_permeability, k_v_h, porosity, steam_injection_pressure, steam_injection_rate):
+def generate_target(viscosity, horizontal_permeability, k_v_h, porosity, steam_injection_pressure, steam_injection_rate, steam_quality):
     ''' Define arbitrary relation between the
         features and target.
     '''
-    return 0.35*viscosity+0.41*horizontal_permeability+0.15*k_v_h-0.075*porosity-0.25*steam_injection_pressure-0.15*steam_injection_rate+0.32
+    recovery = 0.5*(steam_quality**3)\
+           -0.25*(steam_injection_pressure**1.8)\
+           -0.15*(steam_injection_rate**1.75) \
+           +0.35 * viscosity \
+           +0.41 * horizontal_permeability \
+           +0.15 * k_v_h \
+           -0.075 * (porosity ** 1.25) \
+           +np.random.rand() # random unmeasured noise
 
+    return recovery
+
+def compare_results(prediction, actual):
+    plt.plot(prediction, '*', label='Prediction')
+    plt.plot(actual, '.', label='Actual')
+    plt.legend(loc='best')
+    plt.ylabel('Normalized Recovery Rate')
+    plt.xlabel('Sample #')
+    plt.show()
+
+def plot_metrics(_model):
+    # Loss
+    print(_model.history)
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.suptitle('Base Model')
+    ax1.plot(_model.history['loss'])
+    ax1.plot(_model.history['val_loss'])
+    ax1.set_title('Training and Validation -  Loss')
+    ax1.set_ylabel('loss')
+    ax1.set_xlabel('epoch')
+    ax1.legend(['training', 'validation'], loc='best')
+
+    # summarize history for MSE
+    ax2.plot(_model.history['mean_squared_error'])
+    ax2.plot(_model.history['val_mean_squared_error'])
+    ax2.set_title('Training and Validation - MSE')
+    ax2.set_ylabel('MSE')
+    ax2.set_xlabel('epoch')
+    ax2.legend(['training', 'validation'], loc='best')
+    plt.show()
+
+
+# =========================================================================================================
 # Training data
+#
+# The data reference is taken from
+# "Predicting the performance of steam assisted gravity drainage (SAGD)
+# method utilizing artiﬁcial neural network (ANN)" by
+# Areeba Ansari, Marco Heras, Julianne Nones, Mehdi Mohammadpoor, Farshid Torab
+#
+# -----------------------------------------------------------------
+# InputParameter - Minimum | Maximum | Mean | Standard Deviation |
+# -----------------------------------------------------------------
+# Steam quality (w of dry steam/w of dry + wet steam) - 0.68 0.88 0.8 0.05
+# Steam Injection Pressure (kPa) - 1200 9480 3012 1435
+# Steam Injection Rate (bbl/day) -  31.447 26952.12872 5980 6091
+# Oil Viscosity (cP) - 1965 5000000 1039965 965149
+# Horizontal Permeability (mD) -  1000 10000 4295 1668
+# k k v h / - 0.1000 1.0000 0.5927 0.2118
+# Porosity (%) - 20.00 40.00 32.27 3.72
+# Pay Thickness (ft) - 0.41 525 87 87
+# -----------------------------------------------------------------
+# OutputParameter
+# -----------------------------------------------------------------
+# Recovery Factor (%)
+# -----------------------------------------------------------------
+
+
 NUM_SAMPLES = 2000
+
 viscosity = generate_data(1965, 5000000, 1039965, 965149, NUM_SAMPLES)
 horizontal_permeability = generate_data(1000, 10000, 4295, 1668, NUM_SAMPLES)
 k_v_h = generate_data(0.1000, 1.0000, 0.5927,  0.2118, NUM_SAMPLES)
@@ -78,10 +126,10 @@ porosity = generate_data(20.00, 40.00, 32.27, 3.72, NUM_SAMPLES)
 pay_thickness = generate_data(0.41, 525, 87, 87, NUM_SAMPLES)
 steam_injection_pressure = generate_data(1200, 9480, 3012, 1435, NUM_SAMPLES)
 steam_injection_rate = generate_data(31.447, 26952.12872, 5980, 6091, NUM_SAMPLES)
-recovery_rate = generate_target(viscosity, horizontal_permeability, k_v_h, porosity, steam_injection_pressure, steam_injection_rate)
+steam_quality = generate_data(0.68, 0.88, 0.8, 0.05, NUM_SAMPLES)
+recovery_rate = generate_target(viscosity, horizontal_permeability, k_v_h, porosity, steam_injection_pressure, steam_injection_rate, steam_quality)
 
 # Normalize the values
-
 viscosity = normalize_values(viscosity)
 horizontal_permeability = normalize_values(horizontal_permeability)
 k_v_h = normalize_values(k_v_h)
@@ -91,65 +139,72 @@ steam_injection_pressure = normalize_values(steam_injection_pressure)
 steam_injection_rate = normalize_values(steam_injection_rate)
 recovery_rate = normalize_values(recovery_rate)
 
+# Get inputs and target variable.
+# Split them in 75:25 ratio
+# Train:test = 0.75:0.25
+TEST_SIZE = 0.25
+SPLIT_CUTOFF = int(NUM_SAMPLES*(1-TEST_SIZE))
 
-X = np.array([viscosity, horizontal_permeability, k_v_h, porosity, pay_thickness, steam_injection_rate, steam_injection_pressure])
+X = np.array([viscosity, horizontal_permeability, k_v_h, porosity, pay_thickness, steam_injection_rate, steam_injection_pressure, steam_quality])
 y = recovery_rate
-X_train = X[:,:1500]
-y_train = y[:1500]
 
-X_test = X[:,1500:]
-y_test = y[1500:]
+X = X.reshape(NUM_SAMPLES,8)
+y = y.reshape(NUM_SAMPLES)
 
-print(X.shape, y.shape, 'test: ',X_test.shape, y_test.shape)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=TEST_SIZE, random_state=101)
 
-# Build model
-inputs = keras.Input(shape=(7,))
-print(inputs.shape, inputs.dtype)
+print('X_train Shape:\t{}\ny_train Shape:\t{}'.format(X_train.shape, y_train.shape))
+print('X_test Shape:\t{}\ny_test Shape:\t{}'.format(X_test.shape, y_test.shape))
 
-layer_1 = layers.Dense(14, activation = 'relu')
+# Define network/model
+inputs = keras.Input(shape=(8,))
+#print(inputs.shape, inputs.dtype)
+
+layer_1 = layers.Dense(12, activation = 'relu')
 x_1 = layer_1(inputs)
-print(x_1.shape)
+#print(x_1.shape)
 
-layer_2 = layers.Dense(21, activation= 'relu')(x_1)
+layer_2 = layers.Dense(16, activation= 'relu')(x_1)
 outputs = layers.Dense(1)(layer_2)
-print(outputs.shape)
+#print(outputs.shape)
 
-model =  keras.Model(inputs=inputs, outputs=outputs, name='base_model')
+model =  keras.Model(inputs=inputs,
+                     outputs=outputs,
+                     name='base_model')
 model.summary()
-X_train = X_train.reshape(1500,7)
-opt = tf.keras.optimizers.Adam(learning_rate=0.0001)
-model.compile(
-    loss='mean_squared_error',
-    optimizer=opt,
-    metrics=['mean_squared_error'],
 
-)
+# Model Parameters
+# =========================================================================
+LEARNING_RATE = 0.0001
+LOSS = losses.MeanSquaredError()
+OPTIMIZER = optimizers.Adam(learning_rate=LEARNING_RATE)
+METRICS = [metrics.MeanSquaredError()]
+BATCH_SIZE = 32
+NUM_EPOCHS = 250
+VALIDATION_SPLIT = 0.2
 
-history = model.fit(X_train, y_train, batch_size=32, epochs=500, validation_split=0.2)
-X_test = X_test.reshape(500,7)
-test_scores = model.evaluate(X_test, y_test, batch_size= 25, verbose=2)
-print("Test loss:", test_scores[0])
-print("Test MAE:", test_scores[1])
+model.compile(loss=LOSS,
+              optimizer=OPTIMIZER,
+              metrics=METRICS)
 
-print(test_scores)
+# Fit the model on the training set
+base_model = model.fit(X_train,
+                    y_train,
+                    batch_size=BATCH_SIZE,
+                    epochs=NUM_EPOCHS,
+                    validation_split=VALIDATION_SPLIT)
+
+# Evaluate the model on the test set
+test_scores = model.evaluate(X_test,
+                             y_test,
+                             batch_size= BATCH_SIZE,
+                             verbose=2)
+
+print("Test loss:\t{:.2f}\nTest MSE:\t{:.2f}".format(test_scores[0], test_scores[1]))
+
+# Predict on the test data
 y_pred = model.predict(X_test)
 
-print(y_pred, y_test)
-
-print(history.history.keys())
-# summarize history for loss
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
-plt.title('model loss')
-plt.ylabel('loss')
-plt.xlabel('epoch')
-plt.legend(['train', 'test'], loc='upper left')
-plt.show()
-# summarize history for MAE
-plt.plot(history.history['mean_squared_error'])
-plt.plot(history.history['val_mean_squared_error'])
-plt.title('model MSE')
-plt.ylabel('MSE')
-plt.xlabel('epoch')
-plt.legend(['train', 'test'], loc='upper left')
-plt.show()
+# Plot results and metrics
+plot_metrics(base_model)
+compare_results(y_pred, y_test)
