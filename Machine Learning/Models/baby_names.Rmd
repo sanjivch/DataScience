@@ -1,0 +1,46 @@
+---
+title: "CS361"
+author: "Sanjiv Chemudupati"
+date: "5/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(babynames)
+library(tidyverse)
+```
+```{r}
+glimpse(babynames)
+```
+
+```{r}
+view(babynames)
+```
+
+```{r}
+names(babynames)
+```
+
+```{r}
+df <- babynames %>% 
+    filter((name=="Alison" | name=="Allison") & sex=="F")
+```
+```{r}
+glimpse(df)
+```
+
+```{r}
+ggplot(df,aes(x=year,
+              y=prop,
+              group=name,
+              color=name))+
+    geom_line()+
+    labs(x="Year",
+         y="Proportion",
+         title = "Names")
+```
+

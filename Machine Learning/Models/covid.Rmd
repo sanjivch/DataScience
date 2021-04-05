@@ -1,0 +1,101 @@
+---
+title: "Untitled"
+author: "Sanjiv Chemudupati"
+date: "4/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(countrycode)
+```
+
+```{r}
+confirmed_cases_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+covid_confirmed <- read.csv(confirmed_cases_url,header=TRUE, check.names = FALSE)
+
+
+head(covid_confirmed)
+```
+```{r}
+asNumeric <- function(x) as.numeric(as.character(x))
+factorsNumeric <- function(d) modifyList(d, lapply(d[, sapply(d, is.factor)],asNumeric))
+```
+
+```{r}
+modify_df <- function(df){
+ df <-  df %>% 
+  mutate(iso_name = factor(countrycode(`Country/Region`, origin='country.name', destination = 'iso3c', custom_match = c(Kosovo = "KSV", `Diamond Princess` = "DIA", `MS Zaandam` = "MSZ")))) %>% 
+  select(-c(`Province/State`, `Country/Region`, Lat, Long)) %>% 
+  group_by(iso_name) %>%
+  summarise_all(.funs = sum) %>% 
+  t() %>% 
+  as.data.frame() 
+
+}
+
+```
+```{r}
+clean_df <- function(df){
+  names(df) <- lapply(df[1,], as.character) 
+  df <- df[-1,]
+  df <- factorsNumeric(df) %>% 
+    mutate(Dates = rownames(df))
+  }
+
+
+```
+
+
+```{r}
+covid_confirmed <- modify_df(covid_confirmed) 
+covid_confirmed <- clean_df(covid_confirmed)
+```
+
+
+
+```
+```{r}
+head(covid_confirmed)
+```
+
+
+```{r}
+covid_confirmed$Dates<-paste(covid_confirmed$Dates, "20", sep="") %>% 
+  as.factor() %>% 
+  strptime(format="%m/%d/%Y") %>% 
+  as.Date(format="%Y-%m-%d")
+```
+```{r}
+head(covid_confirmed)
+```
+```{r}
+covid_confirmed$Dates
+
+
+```
+
+
+```{r}
+countrycode(covid_confirmed$`Country/Region`, origin = 'country.name', destination = 'iso3c', custom_match = c(Kosovo = "KSV", `Diamond Princess` = "DIA", `MS Zaandam` = "MSZ")) 
+```
+```{r}
+y <- countrycode(names(select_if(covid_confirmed, is.numeric)), origin='iso3c', destination = 'country.name', custom_match = c("KSV" = "Kosovo" ,"DIA"= "Diamond Princess", "MSZ"= "MS Zaandam"))
+```
+
+```{r}
+y
+```
+```{r}
+x <- names(select_if(covid_confirmed, is.numeric))
+```
+
+```{r}
+names(x) <- y
+
+```
+```{r}
+names(x)
+```
+

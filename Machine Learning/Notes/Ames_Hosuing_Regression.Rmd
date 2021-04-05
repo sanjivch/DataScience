@@ -1,0 +1,88 @@
+---
+title: "Ames Housing - Regression"
+author: "Sanjiv Chemudupati"
+date: "Last updated: `r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+```
+
+### Import libraries
+
+```{python}
+import pandas as pd
+import numpy as np 
+from scipy import stats
+import matplotlib.pyplot as plt 
+import matplotlib.style as style
+import seaborn as sns
+import warnings   
+warnings.filterwarnings('ignore')
+style.use('ggplot')
+```
+
+Load the datasets. The data is taken from [Kaggle](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data)
+
+```{python}
+train_csv = r"C:\Users\sanjiv\Documents\Datasets\Kaggle\House prices\train.csv"
+test_csv = r"C:\Users\sanjiv\Documents\Datasets\Kaggle\House prices\test.csv"
+house_train = pd.read_csv(train_csv)
+house_test = pd.read_csv(test_csv)
+```
+The training set has 81 columns. `SalePrice` is the target variable.
+```{python echo=FALSE}
+print('Shape: ', house_train.shape)
+```
+
+We will inspect the `house_train` data frame. Look at the `describe()` and `info()` properties.
+
+```{python}
+house_train['SalePrice'].describe()
+```
+
+```{python echo=FALSE}
+house_train.info()
+```
+
+
+```{python}
+sns.distplot(house_train['SalePrice'], fit = stats.norm)
+
+```
+```{python}
+res = stats.probplot(house_train['SalePrice'], plot=plt)
+#plt.scatter(res[0][0], res[0][1])
+plt.show()
+```
+
+```{python include=FALSE}
+print(res[1])
+```
+Apply log transformation on `SalePrice`.
+
+```{python}
+house_train['SalePrice'] = np.log(house_train['SalePrice'])
+```
+
+```{python}
+sns.distplot(house_train['SalePrice'], fit = stats.norm)
+```
+
+```{python}
+res = stats.probplot(house_train['SalePrice'], plot=plt)
+#plt.scatter(res[0][0], res[0][1])
+plt.show()
+```
+
+```{python}
+house_train['SalePrice'].skew(axis = 0, skipna = True)
+```
+
+```{python}
+from sklearn.tree import DecisionTreeRegressor
+
+```
+

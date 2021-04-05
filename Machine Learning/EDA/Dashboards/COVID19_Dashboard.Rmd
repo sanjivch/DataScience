@@ -338,9 +338,9 @@ india_data <- india_data[-1,]
 india_map <- india_data %>%
             leaflet() %>%
             addTiles() %>%
-            addCircles(weight=10,
+            addCircles(weight=1,
                        color = "red",
-                       radius=~(india_data$Confirmed)*5,
+                       radius=~(india_data$Confirmed)*0.5,
                        popup = paste(india_data$State, 
                                paste("Confirmed",india_data$Confirmed, sep = " : "),
                                paste("Recovered",india_data$Recovered, sep = " : "),

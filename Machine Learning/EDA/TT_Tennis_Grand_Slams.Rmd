@@ -1,0 +1,129 @@
+---
+title: "Tennis Gran Slam"
+author: "Sanjiv Chemudupati"
+date: "5/4/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+library(tidyverse)
+
+```
+```{r echo=TRUE,results='hide', message=FALSE}
+player_dob <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-04-09/player_dob.csv")
+
+grand_slams <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-04-09/grand_slams.csv")
+
+grand_slam_timeline <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-04-09/grand_slam_timeline.csv")
+```
+
+```{r}
+#dim(player_dob)
+#dim(grand_slams)
+#dim(grand_slam_timeline)
+
+grand_slam_timeline %>% 
+  filter(year == 1968) %>% 
+  count(outcome)
+```
+
+```{r}
+grand_slam_timeline %>% 
+  arrange(year) %>%
+  filter(year == 1977, outcome == "Won") %>% 
+  distinct(player, tournament, outcome) %>% 
+  count(player, tournament, outcome)
+```
+
+```{r}
+grand_slams %>% 
+  count(name, gender, sort = TRUE) %>% 
+  mutate(name = fct_reorder(name, n)) %>% 
+  head(20) %>% 
+  ggplot(aes(name, n, 
+             fill = gender))+
+  geom_col()+
+  geom_text(aes(label = n), 
+            size = 3, 
+            position = position_stack(vjust = 0.8))+
+  coord_flip()+
+  labs(x = "",
+       y = "No. of Gland Slams",
+       title = "Grand Slam Winners (Male and Female)",
+       subtitle = "1968-2019",
+       fill = "Gender")
+  #facet_grid(cols = vars(gender))
+```
+
+```{r}
+grand_slams %>% 
+  count(name, grand_slam, sort = TRUE) %>%
+  add_count(name, wt = n, name = "Total") %>%
+  filter(Total >= 8) %>% 
+  mutate(name = fct_reorder(name, n, sum),
+         grand_slam = str_to_upper(str_replace(grand_slam,"_"," "))) %>% 
+  ggplot(aes(name, n, fill = grand_slam))+
+  geom_col()+
+  geom_text(aes(label = n), 
+            size = 2, 
+            position = position_stack(vjust = 0.5))+
+  coord_flip()+
+  labs(x = "",
+       y = "No. of Grand Slams",
+       title = "Grand Slam Winners - All time",
+       subtitle = "1968 - 2019",
+       fill = "Grand Slam")
+```
+
+```{r}
+grand_slams %>% 
+  group_by(name, grand_slam) %>% 
+  summarize() %>% 
+  count(name, grand_slam, sort = TRUE) %>% 
+  add_count(name, wt = n, name = "Slam") %>% 
+  filter(Slam == 4) %>% 
+  distinct(name, Slam)
+```
+
+
+```{r}
+# Distributionage of first time winners
+#grand_slam_age <- 
+  player_dob %>%
+  full_join(grand_slams, by="name") %>% 
+  distinct(date_of_first_title, .keep_all = T) %>% 
+  mutate(age_yrs = age/365) %>% 
+  ggplot(aes(age_yrs,  fill = gender))+
+  geom_histogram()+
+  geom_vline(aes(xintercept = mean(age_yrs)),col='red',size=2)+
+  facet_wrap(~gender)+
+  labs(x="Age (yrs)",
+       y="No.of players",
+       title="Age distribution of first time winners by gender",
+       subtitle = "1968-2019",
+       fill = "Gender")
+```
+```{r}
+# Distributionage of first time winners
+#grand_slam_age <- 
+  player_dob %>%
+  full_join(grand_slams, by="name") %>% 
+  distinct(date_of_first_title, .keep_all = T) %>% 
+  mutate(age_yrs = age/365) %>% 
+  ggplot(aes(age_yrs))+
+  geom_histogram()+
+  geom_density()+
+  facet_wrap(~grand_slam.y)+
+  labs(x="Age (yrs)",
+       y="No.of players",
+       title="Age distribution of first time winners by tournament",
+       subtitle = "1968-2019",
+       fill = "Grand Slam")
+```
+
