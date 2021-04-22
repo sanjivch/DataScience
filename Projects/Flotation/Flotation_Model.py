@@ -7,12 +7,14 @@ from sklearn.linear_model import LinearRegression, SGDRegressor
 import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
+
+# Load data
 csv_file = r'C:\Users\sanjiv\Documents\Datasets\Kaggle\Flotation\MiningProcess_Flotation_Plant_Database.csv'
-#master = pd.read_csv(csv_file, decimal=',', parse_dates=['date'], index_col='date')
-master = pd.read_csv(csv_file, decimal=',')
+master = pd.read_csv(csv_file, decimal=',', parse_dates=['date'], index_col='date')
+#master = pd.read_csv(csv_file, decimal=',')
 
 st.title('Flotation model')
-
+print(master.head())
 # # See if there is a sesonality per month or a per shift basis
 # master['month'] = master.index.month
 # master['hour'] = master.index.hour
@@ -23,7 +25,7 @@ st.title('Flotation model')
 # sns.lineplot(x=daily_data.index, y='% Silica Concentrate', data=daily_data)
 # plt.show()
 
-
+plt.plot(master["% Iron Concentrate"])
 matrix = np.triu(master.corr())
 sns.heatmap(master.corr(), annot = True, fmt='.1g', linewidths=1, mask = matrix)
 plt.show()
