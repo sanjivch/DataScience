@@ -1,0 +1,15 @@
+artifact_uri: ./mlruns/0/e6f39913a3774262b3e0f83d4e183fdb/artifacts
+end_time: 1619955516215
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: e6f39913a3774262b3e0f83d4e183fdb
+run_uuid: e6f39913a3774262b3e0f83d4e183fdb
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1619955515660
+status: 3
+tags: []
+user_id: sanjiv
