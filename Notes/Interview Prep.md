@@ -1,5 +1,5 @@
 
-# 1. Probablility and Statistics
+# 1. [[Probablility and Statistics]]
 ## General
 1. - **Central Limit Theorem/Tendency**
 The Central Limit Theorem states that the sampling distribution of the sample means approaches a normal distribution as the sample size gets larger — no matter what the shape of the population distribution. This fact holds especially true for sample sizes over 30. 
@@ -9,7 +9,7 @@ The law of large numbers states that as a sample size grows, its *mean* gets clo
 
 
    - **Under what circumstances**
-## Statistical tests
+## [[Statistical tests]]
 1. **ANOVA - Analysis of Variance** 
 ANOVA is method where we check the means of one or more groups are statistically different.
 
@@ -37,7 +37,8 @@ R^2 test
 11. **In a Regression setting, when do you user R-squared vs RMSE**
 The RMSE is the square root of the variance of the residuals. It indicates the *absolute fit of the model* to the data–how close the observed data points are to the model’s predicted values. 
 Whereas R-squared is a *relative measure of fit*, RMSE is an absolute measure of fit. As the square root of a variance, RMSE can be interpreted as the standard deviation of the unexplained variance, and has the useful property of being in the same units as the response variable. Lower values of RMSE indicate better fit. RMSE is a good measure of how accurately the model predicts the response, and it is the most important criterion for fit if the main purpose of the model is prediction.
-7. What is regularisation, why is it important. Share regularisation techniques you have used
+
+12. **What is regularisation, why is it important. Share regularisation techniques you have used**
 
 # 3. Logistic Regression
 

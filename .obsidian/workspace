@@ -1,0 +1,132 @@
+{
+  "main": {
+    "id": "f72fcc8a4771196c",
+    "type": "split",
+    "children": [
+      {
+        "id": "d21236b66da27207",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "Notes/Generalized Linear Models.md",
+            "mode": "source"
+          }
+        }
+      },
+      {
+        "id": "54ecb68059e5e3a2",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "Notes/Generalized Linear Models.md",
+            "mode": "preview"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "2db78a366634daef",
+    "type": "split",
+    "children": [
+      {
+        "id": "a54746423a82c7d1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8ab4ab3b30727286",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "8b0aff642b019e71",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "aa8c07e6888958fe",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "3f056906c334f247",
+    "type": "split",
+    "children": [
+      {
+        "id": "b145bd95ce5bdff7",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ce02603aa8f9c084",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Notes/Generalized Linear Models.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "df99bcadc846dbbe",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "d21236b66da27207",
+  "lastOpenFiles": [
+    "Notes/Generalized Linear Models.md",
+    "Notes/Machine Learning.md",
+    "Notes/Interview Prep.md",
+    "Generalized Linear Models.md",
+    "Notes/Distributions.md",
+    "Notes/Distances.md",
+    "Notes/NLP.md",
+    "Notes/Untitled.md",
+    "Supervised Learning.md",
+    "Notes/Random Forests.md"
+  ]
+}
