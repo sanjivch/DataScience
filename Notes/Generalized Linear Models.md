@@ -15,7 +15,7 @@ $$\hat{y} = β_{0} + β_{1}X_{1} + β_{2}X_{2} +....+ β_{n}X_{n}$$
 2.  **Homoscedasticity**: The variance of residual is the same for any value of $X$.
 	(*homo + scedastic* -> meaning the same variance of residuals across the regression line)
 	<u>How to check</u>: *Scatter plots*
-3.   **Independence**: Observations are independent of each other a.k.a not auto-correlation.
+3.   **Independence**: Observations are independent of each other a.k.a not auto-correlated.
  	<u>How to check</u>: *Scatter plots*
 4.   **Normality**: For any fixed value of $X$, $Y$ is [[Distributions#Gaussian Distribution|normally distributed]]
 	<u>How to check</u>: *Histogram or a Q-Q-Plot*
@@ -24,7 +24,7 @@ Reference : [Duke Univ.](https://people.duke.edu/~rnau/testing.htm)
 
 ### Evaluation Metrics
 1. **$R^2$ Statistic** 
-	- Defined as $$R^{2} = \frac{TSS - RSS}{TSS} = 1 - \frac{RSS}{TSS} = 1 -\frac{(y_{i}-\hat{y})^{2}}{(y_{i}-\bar{y})^{2}}$$
+	- Defined as $$R^{2} = \frac{TSS - RSS}{TSS} = 1 - \frac{RSS}{TSS} = 1 -\frac{(y_{i}-\hat{y_{i}})^{2}}{(y_{i}-\bar{y})^{2}}$$
 	-  $R^2$ *measures the proportion of variability* in $Y$ that *can be explained* using $X$.
 	- $TSS$ measures the total variance in the response Y , and can be thought of as the <u>amount of variability inherent in the response before the regression is performed</u>
 	- $RSS$ measures the amount of variability that <u>is left unexplained after performing the regression</u>
@@ -33,7 +33,7 @@ Reference : [Duke Univ.](https://people.duke.edu/~rnau/testing.htm)
 	Related : [[Correlation]]. [[Covariance]]
 	
 2. **Adjusted $R^2$ Statistic**
-	-  
+	-  $$Adj. R^2 = 1 - \frac{(1-R^2)(n-1)}{(n-k-1)}$$
 		
 
 
@@ -56,3 +56,7 @@ $VIF > 10$ -> definite multicollinearity
 - centering the data (deduct the mean of the variable from each score)   
 - remove independent variables with high VIF values.
 
+## Logistic Regression
+
+- Linear models are used to seperate datasets which are linearly seperable.
+- 

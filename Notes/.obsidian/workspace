@@ -1,0 +1,113 @@
+{
+  "main": {
+    "id": "77814226cc83cecf",
+    "type": "split",
+    "children": [
+      {
+        "id": "897a76dc4c2471f5",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "Generalized Linear Models.md",
+            "mode": "preview"
+          }
+        }
+      },
+      {
+        "id": "cb97adfbb95ed3f1",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "Decision Trees.md",
+            "mode": "preview"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "c9bc73bacc0c347e",
+    "type": "split",
+    "children": [
+      {
+        "id": "031d995f96649b24",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4667a7f2dae81fe7",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "9d319c5d010483d0",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "16154e34e025a639",
+    "type": "split",
+    "children": [
+      {
+        "id": "6f4db9072d55ec34",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "55edecb7a24e7bcd",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Generalized Linear Models.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "897a76dc4c2471f5",
+  "lastOpenFiles": [
+    "Generalized Linear Models.md",
+    "Distributions.md",
+    "Distances.md",
+    "Decision Trees.md",
+    "Data Science.md",
+    "Theorems.md",
+    "Supervised Learning.md",
+    "Reinforcement Learning.md",
+    "Random Forests.md",
+    "Probablility and Statistics.md"
+  ]
+}
