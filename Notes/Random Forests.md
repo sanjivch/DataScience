@@ -7,4 +7,6 @@
 
 Combines multiple [[decision trees]] and comes up with a prediction. builds on randomly generated decision trees and the model is average of the decision trees, inherently reducing the overfit. Also, does not need the features to be scaled/transformed
 
+## Assumptions
+
 #algorithms 
